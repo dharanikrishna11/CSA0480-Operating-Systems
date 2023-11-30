@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
+
+void listFiles(const char *path);
+
+int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        // If no arguments provided, list the current directory
+        listFiles(".");
+    } else {
+        // List files for each provided directory
+        for (int i = 1; i < argc; i++) {
+            printf("Contents of directory '%s':\n", argv[i]);
+            listFiles(argv[i]);
+            printf("\n");
+        }
+    }
+
+    return 0;
+}
+
+void listFiles(const char *path) {
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(path);
+
+    if (dir == NULL) {
+        perror("Error opening directory");
+        exit(EXIT_FAILURE);
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        char fullpath[1024];
+        struct stat fileStat;
+
+        // Construct the full path of the file or directory
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
+
+        // Get information about the file or directory
+        if (stat(fullpath, &fileStat) == -1) {
+            perror("Error getting file information");
+            continue;
+        }
+
+        // Print file or directory details
+        printf("%s\t", entry->d_name);
+
+        // Print file permissions
+        printf((S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+        printf((fileStat.st_mode & S_IRUSR) ? "r" : "-");
+        printf((fileStat.st_mode & S_IWUSR) ? "w" : "-");
+        printf((fileStat.st_mode & S_IXUSR) ? "x" : "-");
+        printf((fileStat.st_mode & S_IRGRP) ? "r" : "-");
+        printf((fileStat.st_mode & S_IWGRP) ? "w" : "-");
+        printf((fileStat.st_mode & S_IXGRP) ? "x" : "-");
+        printf((fileStat.st_mode & S_IROTH) ? "r" : "-");
+        printf((fileStat.st_mode & S_IWOTH) ? "w" : "-");
+        printf((fileStat.st_mode & S_IXOTH) ? "x" : "-");
+
+        // Print number of hard links
+        printf("\t%ld", (long)fileStat.st_nlink);
+
+        // Print owner and group
+        struct passwd *owner = getpwuid(fileStat.st_uid);
+        struct group *group = getgrgid(fileStat.st_gid);
+        printf("\t%s\t%s", (owner != NULL) ? owner->pw_name : "", (group != NULL) ? group->gr_name : "");
+
+        // Print size of the file
+        printf("\t%ld", (long)fileStat.st_size);
+
+        // Print last modified time
+        char timeString[100];
+        strftime(timeString, sizeof(timeString), "%b %d %H:%M", localtime(&fileStat.st_mtime));
+        printf("\t%s", timeString);
+
+        printf("\n");
+    }
+
+    closedir(dir);
+}
