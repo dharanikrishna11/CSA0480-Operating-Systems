@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_RECORDS 100
+
+typedef struct {
+    int recordNumber;
+    char data[100];
+} Record;
+
+void writeRecord(Record *file, int *totalRecords, const char *data) {
+    if (*totalRecords < MAX_RECORDS) {
+        Record newRecord;
+        newRecord.recordNumber = *totalRecords + 1;
+        snprintf(newRecord.data, sizeof(newRecord.data), "%s", data);
+
+        file[*totalRecords] = newRecord;
+        (*totalRecords)++;
+
+        printf("Record %d written to the file.\n", newRecord.recordNumber);
+    } else {
+        printf("Error: File is full. Cannot write more records.\n");
+    }
+}
+
+void readRecord(const Record *file, int totalRecords, int recordNumber) {
+    if (recordNumber > 0 && recordNumber <= totalRecords) {
+        printf("Reading Record %d: %s\n", recordNumber, file[recordNumber - 1].data);
+    } else {
+        printf("Error: Record not found. Invalid record number.\n");
+    }
+}
+
+int main() {
+    Record file[MAX_RECORDS];
+    int totalRecords = 0;
+
+    // Simulating writing records to the file
+    writeRecord(file, &totalRecords, "Data for Record 1");
+    writeRecord(file, &totalRecords, "Data for Record 2");
+    writeRecord(file, &totalRecords, "Data for Record 3");
+
+    // Simulating reading records from the file
+    readRecord(file, totalRecords, 2);
+    readRecord(file, totalRecords, 1);
+    readRecord(file, totalRecords, 4); // This will result in an error
+
+    return 0;
+}
