@@ -1,0 +1,59 @@
+#include <stdio.h>
+
+#define FRAME_SIZE 3
+#define PAGE_SIZE 10
+
+void printPageTable(int pageTable[], int frameSize) {
+    printf("Page Table: ");
+    for (int i = 0; i < frameSize; ++i) {
+        if (pageTable[i] == -1) {
+            printf("[ ] ");
+        } else {
+            printf("[%d] ", pageTable[i]);
+        }
+    }
+    printf("\n");
+}
+
+int isInPageTable(int page, int pageTable[], int frameSize) {
+    for (int i = 0; i < frameSize; ++i) {
+        if (pageTable[i] == page) {
+            return 1; // Page is in the page table
+        }
+    }
+    return 0; // Page is not in the page table
+}
+
+int main() {
+    int pageReferenceSequence[PAGE_SIZE] = {0, 1, 2, 3, 4, 0, 1, 5, 3, 4};
+    int pageTable[FRAME_SIZE];
+    int pageFaults = 0;
+    int oldestPageIndex = 0;
+
+    // Initialize page table with -1 to represent empty frames
+    for (int i = 0; i < FRAME_SIZE; ++i) {
+        pageTable[i] = -1;
+    }
+
+    for (int i = 0; i < PAGE_SIZE; ++i) {
+        int currentPage = pageReferenceSequence[i];
+
+        if (!isInPageTable(currentPage, pageTable, FRAME_SIZE)) {
+            // Page fault, replace the oldest page
+            int replacedPage = pageTable[oldestPageIndex];
+            pageTable[oldestPageIndex] = currentPage;
+
+            printf("Page fault - Page %d replaces Page %d\n", currentPage, replacedPage);
+            pageFaults++;
+
+            // Move to the next oldest page in the page table
+            oldestPageIndex = (oldestPageIndex + 1) % FRAME_SIZE;
+        }
+
+        printPageTable(pageTable, FRAME_SIZE);
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
