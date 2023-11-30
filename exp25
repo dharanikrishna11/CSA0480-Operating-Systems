@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+void demonstrateFileControl(int fd);
+void demonstrateFileSeek(int fd);
+void demonstrateFileStat(const char *filename);
+void demonstrateDirectoryRead(const char *dirname);
+
+int main() {
+    const char *filename = "example.txt";
+    const char *dirname = ".";
+
+    // Open a file for reading and writing
+    int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+    if (fd == -1) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    } else {
+        printf("File opened successfully.\n");
+    }
+
+    demonstrateFileControl(fd);
+    demonstrateFileSeek(fd);
+    demonstrateFileStat(filename);
+    demonstrateDirectoryRead(dirname);
+
+    // Close the file
+    close(fd);
+
+    return 0;
+}
+
+void demonstrateFileControl(int fd) {
+    // Demonstrate fcntl for file control
+    int flags = fcntl(fd, F_GETFL, 0);
+
+    if (flags == -1) {
+        perror("Error in fcntl");
+    } else {
+        printf("File control flags: %d\n", flags);
+    }
+}
+
+void demonstrateFileSeek(int fd) {
+    // Demonstrate lseek to seek to a specific position
+    off_t offset = lseek(fd, 10, SEEK_SET);
+
+    if (offset == -1) {
+        perror("Error in lseek");
+    } else {
+        printf("File pointer moved to position: %ld\n", offset);
+    }
+}
+
+void demonstrateFileStat(const char *filename) {
+    // Demonstrate stat to retrieve file information
+    struct stat fileStat;
+
+    if (stat(filename, &fileStat) == -1) {
+        perror("Error in stat");
+    } else {
+        printf("File Information:\n");
+        printf("Size: %ld bytes\n", fileStat.st_size);
+        printf("Mode: %o\n", fileStat.st_mode);
+        printf("Number of hard links: %ld\n", fileStat.st_nlink);
+    }
+}
+
+void demonstrateDirectoryRead(const char *dirname) {
+    // Demonstrate opendir and readdir for directory operations
+    DIR *dir;
+    struct dirent *entry;
+
+    // Open the current directory
+    dir = opendir(dirname);
+
+    if (dir == NULL) {
+        perror("Error opening directory");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\nContents of directory %s:\n", dirname);
+
+    // Read entries in the directory
+    while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name);
+    }
+
+    // Close the directory
+    closedir(dir);
+}
