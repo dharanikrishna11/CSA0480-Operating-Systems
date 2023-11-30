@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+struct Message {
+    long type;
+    char text[100];
+};
+
+int main() {
+    key_t key;
+    int msgqid;
+    if ((key = ftok("message_queue_example", 'B')) == -1) {
+        perror("ftok");
+        exit(1);
+    }
+
+    if ((msgqid = msgget(key, 0666 | IPC_CREAT)) == -1) {
+        perror("msgget");
+        exit(1);
+    }
+
+    struct Message message;
+
+    message.type = 1; // Message type
+    strcpy(message.text, "Hello, message queue!");
+
+    if (msgsnd(msgqid, &message, sizeof(message.text), 0) == -1) {
+        perror("msgsnd");
+        exit(1);
+    }
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork");
+        exit(1);
+    }
+
+    if (pid > 0) {
+        
+        printf("Parent process waiting for the child to receive from the message queue...\n");
+        wait(NULL);
+        if (msgctl(msgqid, IPC_RMID, NULL) == -1) {
+            perror("msgctl");
+            exit(1);
+        }
+    } else {
+        struct Message received_message;
+
+        if (msgrcv(msgqid, &received_message, sizeof(received_message.text), 1, 0) == -1) {
+            perror("msgrcv");
+            exit(1);
+        }
+
+        printf("Child process received message: %s\n", received_message.text);
+
+        exit(0);
+    }
+
+    return 0;
+}
