@@ -1,0 +1,110 @@
+(i) Thread Creation (pthread_create):
+#include <stdio.h>
+#include <pthread.h>
+
+void *printMessage(void *arg) {
+    char *message = (char *)arg;
+    printf("Thread message: %s\n", message);
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t tid;
+    char message[] = "Hello, this is a thread!";
+
+    // Create a thread
+    if (pthread_create(&tid, NULL, printMessage, (void *)message) != 0) {
+        fprintf(stderr, "Error creating thread.\n");
+        return 1;
+    }
+
+    // Wait for the thread to finish
+    pthread_join(tid, NULL);
+
+    return 0;
+}
+(ii) Thread Joining (pthread_join):
+#include <stdio.h>
+#include <pthread.h>
+
+void *printNumbers(void *arg) {
+    for (int i = 1; i <= 5; ++i) {
+        printf("%d ", i);
+    }
+    printf("\n");
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t tid;
+
+    // Create a thread
+    if (pthread_create(&tid, NULL, printNumbers, NULL) != 0) {
+        fprintf(stderr, "Error creating thread.\n");
+        return 1;
+    }
+
+    // Wait for the thread to finish
+    pthread_join(tid, NULL);
+
+    printf("Main thread is done.\n");
+
+    return 0;
+}
+(iii) Thread Equality (pthread_equal):
+#include <stdio.h>
+#include <pthread.h>
+
+void *printMessage(void *arg) {
+    printf("Thread message\n");
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t tid1, tid2;
+
+    // Create two threads
+    pthread_create(&tid1, NULL, printMessage, NULL);
+    pthread_create(&tid2, NULL, printMessage, NULL);
+
+    // Check if the threads are equal
+    if (pthread_equal(tid1, tid2)) {
+        printf("Threads are equal.\n");
+    } else {
+        printf("Threads are not equal.\n");
+    }
+
+    // Wait for the threads to finish
+    pthread_join(tid1, NULL);
+    pthread_join(tid2, NULL);
+
+    return 0;
+}
+(iv) Thread Exit (pthread_exit):
+#include <stdio.h>
+#include <pthread.h>
+
+void *printMessage(void *arg) {
+    char *message = (char *)arg;
+    printf("Thread message: %s\n", message);
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t tid;
+    char message[] = "Exiting thread using pthread_exit.";
+
+    // Create a thread
+    if (pthread_create(&tid, NULL, printMessage, (void *)message) != 0) {
+        fprintf(stderr, "Error creating thread.\n");
+        return 1;
+    }
+
+    // Wait for the thread to finish
+    pthread_join(tid, NULL);
+
+    // Main thread exits
+    printf("Main thread is done.\n");
+
+    return 0;
+}
