@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_BLOCKS 100
+#define MAX_FILES 10
+
+typedef struct Block {
+    int blockNumber;
+    struct Block *nextBlock;
+} Block;
+
+typedef struct {
+    Block *firstBlock;
+    Block *lastBlock;
+} File;
+
+void initializeFile(File *file) {
+    file->firstBlock = NULL;
+    file->lastBlock = NULL;
+}
+
+int allocateBlock(File *file, int blockNumber) {
+    if (blockNumber < 0 || blockNumber >= MAX_BLOCKS) {
+        printf("Error: Invalid block number.\n");
+        return 0; // Invalid block number
+    }
+
+    // Allocate a new block
+    Block *newBlock = (Block *)malloc(sizeof(Block));
+    if (newBlock == NULL) {
+        printf("Error: Memory allocation failed.\n");
+        return 0; // Memory allocation failed
+    }
+
+    newBlock->blockNumber = blockNumber;
+    newBlock->nextBlock = NULL;
+
+    // If the file is empty, set both first and last block pointers
+    if (file->firstBlock == NULL) {
+        file->firstBlock = newBlock;
+        file->lastBlock = newBlock;
+    } else {
+        // Otherwise, link the new block to the last block
+        file->lastBlock->nextBlock = newBlock;
+        // Update the last block pointer to the new block
+        file->lastBlock = newBlock;
+    }
+
+    printf("Allocated block %d to the file.\n", blockNumber);
+    return 1; // Successfully allocated block
+}
+
+void readFile(const File *file) {
+    printf("File contents:\n");
+    Block *currentBlock = file->firstBlock;
+    while (currentBlock != NULL) {
+        printf("Block %d\n", currentBlock->blockNumber);
+        currentBlock = currentBlock->nextBlock;
+    }
+}
+
+int main() {
+    File myFile;
+    initializeFile(&myFile);
+
+    // Simulating file allocation
+    allocateBlock(&myFile, 2);
+    allocateBlock(&myFile, 5);
+    allocateBlock(&myFile, 1);
+    allocateBlock(&myFile, 2); // This will result in an error (block already allocated)
+
+    // Simulating reading the file
+    readFile(&myFile);
+
+    return 0;
+}
