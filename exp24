@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd, n;
+    char buffer[100];
+
+    // Create a new file or truncate an existing file
+    fd = creat("example.txt", 0666);
+
+    if (fd == -1) {
+        perror("Error creating file");
+        exit(EXIT_FAILURE);
+    } else {
+        printf("File created successfully.\n");
+    }
+
+    // Write data to the file
+    write(fd, "Hello, this is a sample file.\n", 30);
+
+    // Close the file
+    close(fd);
+
+    // Open the file for reading and writing
+    fd = open("example.txt", O_RDWR);
+
+    if (fd == -1) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    } else {
+        printf("File opened successfully.\n");
+    }
+
+    // Read data from the file
+    n = read(fd, buffer, sizeof(buffer));
+
+    if (n == -1) {
+        perror("Error reading file");
+        exit(EXIT_FAILURE);
+    } else {
+        printf("Read from file: %.*s", n, buffer);
+    }
+
+    // Move the file pointer to the beginning
+    lseek(fd, 0, SEEK_SET);
+
+    // Append data to the file
+    write(fd, "Appending more data.", 21);
+
+    // Close the file
+    close(fd);
+
+    return 0;
+}
