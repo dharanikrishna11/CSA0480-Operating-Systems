@@ -1,0 +1,185 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_FILES 50
+#define MAX_DIRECTORIES 20
+#define MAX_FILENAME_LENGTH 20
+#define MAX_DIRECTORY_NAME_LENGTH 20
+
+typedef struct {
+    char name[MAX_FILENAME_LENGTH];
+} File;
+
+typedef struct {
+    char name[MAX_DIRECTORY_NAME_LENGTH];
+    File files[MAX_FILES];
+    int fileCount;
+} Subdirectory;
+
+typedef struct {
+    char name[MAX_DIRECTORY_NAME_LENGTH];
+    Subdirectory subdirectories[MAX_DIRECTORIES];
+    int subdirectoryCount;
+} MainDirectory;
+void createFile(Subdirectory *subdirectory, const char *filename) {
+    if (subdirectory->fileCount < MAX_FILES) {
+        
+        for (int i = 0; i < subdirectory->fileCount; ++i) {
+            if (strcmp(subdirectory->files[i].name, filename) == 0) {
+                printf("File with the name '%s' already exists.\n", filename);
+                return;
+            }
+        }
+
+        strcpy(subdirectory->files[subdirectory->fileCount].name, filename);
+        subdirectory->fileCount++;
+
+        printf("File '%s' created successfully.\n", filename);
+    } else {
+        printf("Subdirectory is full. Cannot create more files.\n");
+    }
+}
+void deleteFile(Subdirectory *subdirectory, const char *filename) {
+    int found = 0;
+    for (int i = 0; i < subdirectory->fileCount; ++i) {
+        if (strcmp(subdirectory->files[i].name, filename) == 0) {
+         
+            for (int j = i; j < subdirectory->fileCount - 1; ++j) {
+                strcpy(subdirectory->files[j].name, subdirectory->files[j + 1].name);
+            }
+            subdirectory->fileCount--;
+
+            printf("File '%s' deleted successfully.\n", filename);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("File with the name '%s' not found.\n", filename);
+    }
+}
+
+void listFiles(const Subdirectory *subdirectory) {
+    if (subdirectory->fileCount == 0) {
+        printf("Subdirectory is empty.\n");
+    } else {
+        printf("Files in the subdirectory:\n");
+        for (int i = 0; i < subdirectory->fileCount; ++i) {
+            printf("%s\n", subdirectory->files[i].name);
+        }
+    }
+}
+
+void createSubdirectory(MainDirectory *mainDirectory, const char *subdirectoryName) {
+    if (mainDirectory->subdirectoryCount < MAX_DIRECTORIES) {
+
+        for (int i = 0; i < mainDirectory->subdirectoryCount; ++i) {
+            if (strcmp(mainDirectory->subdirectories[i].name, subdirectoryName) == 0) {
+                printf("Subdirectory with the name '%s' already exists.\n", subdirectoryName);
+                return;
+            }
+        }
+
+        strcpy(mainDirectory->subdirectories[mainDirectory->subdirectoryCount].name, subdirectoryName);
+        mainDirectory->subdirectories[mainDirectory->subdirectoryCount].fileCount = 0;
+        mainDirectory->subdirectoryCount++;
+
+        printf("Subdirectory '%s' created successfully.\n", subdirectoryName);
+    } else {
+        printf("Main directory is full. Cannot create more subdirectories.\n");
+    }
+}
+
+void deleteSubdirectory(MainDirectory *mainDirectory, const char *subdirectoryName) {
+    int found = 0;
+    for (int i = 0; i < mainDirectory->subdirectoryCount; ++i) {
+        if (strcmp(mainDirectory->subdirectories[i].name, subdirectoryName) == 0) {
+       
+            for (int j = i; j < mainDirectory->subdirectoryCount - 1; ++j) {
+                strcpy(mainDirectory->subdirectories[j].name, mainDirectory->subdirectories[j + 1].name);
+                mainDirectory->subdirectories[j].fileCount = mainDirectory->subdirectories[j + 1].fileCount;
+            }
+            mainDirectory->subdirectoryCount--;
+
+            printf("Subdirectory '%s' deleted successfully.\n", subdirectoryName);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Subdirectory with the name '%s' not found.\n", subdirectoryName);
+    }
+}
+
+void listSubdirectories(const MainDirectory *mainDirectory) {
+    if (mainDirectory->subdirectoryCount == 0) {
+        printf("Main directory is empty.\n");
+    } else {
+        printf("Subdirectories in the main directory:\n");
+        for (int i = 0; i < mainDirectory->subdirectoryCount; ++i) {
+            printf("%s\n", mainDirectory->subdirectories[i].name);
+        }
+    }
+}
+
+int main() {
+    MainDirectory twoLevelDirectory;
+    twoLevelDirectory.subdirectoryCount = 0;
+
+    int choice;
+    char filename[MAX_FILENAME_LENGTH];
+    char subdirectoryName[MAX_DIRECTORY_NAME_LENGTH];
+
+    do {
+        printf("\nTwo-Level Directory Operations:\n");
+        printf("1. Create File\n");
+        printf("2. Delete File\n");
+        printf("3. List Files\n");
+        printf("4. Create Subdirectory\n");
+        printf("5. Delete Subdirectory\n");
+        printf("6. List Subdirectories\n");
+        printf("7. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter the filename to create: ");
+                scanf("%s", filename);
+                createFile(&twoLevelDirectory.subdirectories[0], filename);
+                break;
+            case 2:
+                printf("Enter the filename to delete: ");
+                scanf("%s", filename);
+                deleteFile(&twoLevelDirectory.subdirectories[0], filename);
+                break;
+            case 3:
+                listFiles(&twoLevelDirectory.subdirectories[0]);
+                break;
+            case 4:
+                printf("Enter the subdirectory name to create: ");
+                scanf("%s", subdirectoryName);
+                createSubdirectory(&twoLevelDirectory, subdirectoryName);
+                break;
+            case 5:
+                printf("Enter the subdirectory name to delete: ");
+                scanf("%s", subdirectoryName);
+                deleteSubdirectory(&twoLevelDirectory, subdirectoryName);
+                break;
+            case 6:
+                listSubdirectories(&twoLevelDirectory);
+                break;
+            case 7:
+                printf("Exiting the program.\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+
+    } while (choice != 7);
+
+    return 0;
+}
