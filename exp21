@@ -1,0 +1,83 @@
+#include <stdio.h>
+
+#define MAX_MEMORY_BLOCKS 10
+
+// Structure to represent a memory block
+typedef struct {
+    int blockId;
+    int size;
+    int allocated;
+} MemoryBlock;
+
+// Function to allocate memory using the worst fit algorithm
+void worstFit(MemoryBlock memory[], int numBlocks, int processSize) {
+    int worstFitBlockIndex = -1;
+    int worstFitBlockSize = -1;
+
+    for (int i = 0; i < numBlocks; ++i) {
+        if (!memory[i].allocated && memory[i].size >= processSize) {
+            if (worstFitBlockIndex == -1 || memory[i].size > worstFitBlockSize) {
+                worstFitBlockIndex = i;
+                worstFitBlockSize = memory[i].size;
+            }
+        }
+    }
+
+    if (worstFitBlockIndex != -1) {
+        // Allocate memory
+        memory[worstFitBlockIndex].allocated = 1;
+        printf("Memory allocated to process. Block ID: %d\n", memory[worstFitBlockIndex].blockId);
+    } else {
+        printf("Memory allocation failed. No suitable block found.\n");
+    }
+}
+
+// Function to initialize memory blocks
+void initializeMemory(MemoryBlock memory[], int numBlocks) {
+    for (int i = 0; i < numBlocks; ++i) {
+        memory[i].blockId = i + 1;
+        memory[i].allocated = 0;
+
+        printf("Enter size of memory block %d: ", i + 1);
+        scanf("%d", &memory[i].size);
+    }
+}
+
+// Function to display memory status
+void displayMemoryStatus(const MemoryBlock memory[], int numBlocks) {
+    printf("\nMemory Status:\n");
+    for (int i = 0; i < numBlocks; ++i) {
+        printf("Block ID: %d, Size: %d, Allocated: %s\n",
+               memory[i].blockId, memory[i].size, memory[i].allocated ? "Yes" : "No");
+    }
+    printf("\n");
+}
+
+int main() {
+    MemoryBlock memory[MAX_MEMORY_BLOCKS];
+    int numBlocks, processSize;
+
+    printf("Enter the number of memory blocks: ");
+    scanf("%d", &numBlocks);
+
+    if (numBlocks <= 0 || numBlocks > MAX_MEMORY_BLOCKS) {
+        printf("Invalid number of memory blocks. Exiting.\n");
+        return 1;
+    }
+
+    initializeMemory(memory, numBlocks);
+
+    while (1) {
+        printf("Enter process size to allocate (enter -1 to exit): ");
+        scanf("%d", &processSize);
+
+        if (processSize == -1) {
+            break;
+        }
+
+        worstFit(memory, numBlocks, processSize);
+        displayMemoryStatus(memory, numBlocks);
+    }
+
+    return 0;
+}
