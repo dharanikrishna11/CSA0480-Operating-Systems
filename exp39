@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_REQUESTS 100
+
+void cscan(int requests[], int numRequests, int headStart) {
+    int totalSeekTime = 0;
+    int currentHead = headStart;
+
+    printf("Order of service:\n");
+
+    // Moving towards higher cylinder numbers
+    for (int i = currentHead; i <= 199; ++i) {
+        for (int j = 0; j < numRequests; ++j) {
+            if (i == requests[j]) {
+                printf("%d ", i);
+                totalSeekTime += abs(currentHead - requests[j]);
+                currentHead = requests[j];
+            }
+        }
+    }
+
+    // Move to the lowest cylinder
+    totalSeekTime += abs(currentHead - 0);
+    currentHead = 0;
+
+    // Moving towards higher cylinder numbers again
+    for (int i = 0; i <= headStart; ++i) {
+        for (int j = 0; j < numRequests; ++j) {
+            if (i == requests[j]) {
+                printf("%d ", i);
+                totalSeekTime += abs(currentHead - requests[j]);
+                currentHead = requests[j];
+            }
+        }
+    }
+
+    printf("\nTotal Seek Time: %d\n", totalSeekTime);
+}
+
+int main() {
+    int requests[MAX_REQUESTS];
+    int numRequests;
+    int headStart;
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &numRequests);
+
+    if (numRequests <= 0 || numRequests > MAX_REQUESTS) {
+        printf("Invalid number of requests.\n");
+        return 1;
+    }
+
+    printf("Enter the initial head position: ");
+    scanf("%d", &headStart);
+
+    printf("Enter the disk requests:\n");
+    for (int i = 0; i < numRequests; ++i) {
+        scanf("%d", &requests[i]);
+    }
+
+    cscan(requests, numRequests, headStart);
+
+    return 0;
+}
