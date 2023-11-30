@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_BLOCKS 100
+#define MAX_FILES 10
+
+typedef struct {
+    int indexBlock[MAX_BLOCKS];
+    int fileSize;
+} File;
+
+void initializeFile(File *file) {
+    for (int i = 0; i < MAX_BLOCKS; ++i) {
+        file->indexBlock[i] = -1; // Initialize index block with -1 (invalid block)
+    }
+    file->fileSize = 0;
+}
+
+int allocateBlock(File *file, int blockNumber) {
+    if (blockNumber < 0 || blockNumber >= MAX_BLOCKS) {
+        printf("Error: Invalid block number.\n");
+        return 0; // Invalid block number
+    }
+
+    if (file->indexBlock[blockNumber] == -1) {
+        file->indexBlock[blockNumber] = file->fileSize;
+        file->fileSize++;
+        printf("Allocated block %d to the file.\n", blockNumber);
+        return 1; // Successfully allocated block
+    } else {
+        printf("Error: Block %d is already allocated to the file.\n", blockNumber);
+        return 0; // Block is already allocated
+    }
+}
+
+void readFile(const File *file) {
+    printf("File contents:\n");
+    for (int i = 0; i < file->fileSize; ++i) {
+        printf("Block %d\n", file->indexBlock[i]);
+    }
+}
+
+int main() {
+    File myFile;
+    initializeFile(&myFile);
+
+    // Simulating file allocation
+    allocateBlock(&myFile, 2);
+    allocateBlock(&myFile, 5);
+    allocateBlock(&myFile, 1);
+    allocateBlock(&myFile, 2); // This will result in an error (block already allocated)
+
+    // Simulating reading the file
+    readFile(&myFile);
+
+    return 0;
+}
