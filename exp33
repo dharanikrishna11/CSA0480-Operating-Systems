@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <limits.h>
+
+#define FRAME_SIZE 3
+#define PAGE_SIZE 10
+
+void printPageTable(int pageTable[], int frameSize) {
+    printf("Page Table: ");
+    for (int i = 0; i < frameSize; ++i) {
+        if (pageTable[i] == -1) {
+            printf("[ ] ");
+        } else {
+            printf("[%d] ", pageTable[i]);
+        }
+    }
+    printf("\n");
+}
+
+int isInPageTable(int page, int pageTable[], int frameSize) {
+    for (int i = 0; i < frameSize; ++i) {
+        if (pageTable[i] == page) {
+            return 1; // Page is in the page table
+        }
+    }
+    return 0; // Page is not in the page table
+}
+
+int findOptimalIndex(int pageTable[], int frameSize, int pageReferenceSequence[], int currentIndex) {
+    int farthestIndex = -1;
+    int farthestDistance = -1;
+
+    for (int i = 0; i < frameSize; ++i) {
+        int nextPage = pageTable[i];
+        int futureDistance = INT_MAX;
+
+        for (int j = currentIndex + 1; j < PAGE_SIZE; ++j) {
+            if (pageReferenceSequence[j] == nextPage) {
+                futureDistance = j - currentIndex;
+                break;
+            }
+        }
+
+        if (futureDistance > farthestDistance) {
+            farthestDistance = futureDistance;
+            farthestIndex = i;
+        }
+    }
+
+    return farthestIndex;
+}
+
+int main() {
+    int pageReferenceSequence[PAGE_SIZE] = {0, 1, 2, 3, 4, 0, 1, 5, 3, 4};
+    int pageTable[FRAME_SIZE];
+    int pageFaults = 0;
+
+    // Initialize page table with -1 to represent empty frames
+    for (int i = 0; i < FRAME_SIZE; ++i) {
+        pageTable[i] = -1;
+    }
+
+    for (int i = 0; i < PAGE_SIZE; ++i) {
+        int currentPage = pageReferenceSequence[i];
+
+        if (!isInPageTable(currentPage, pageTable, FRAME_SIZE)) {
+            // Page fault, replace the page that will not be used for the longest time
+            int optimalIndex = findOptimalIndex(pageTable, FRAME_SIZE, pageReferenceSequence, i);
+            int replacedPage = pageTable[optimalIndex];
+            pageTable[optimalIndex] = currentPage;
+
+            printf("Page fault - Page %d replaces Page %d\n", currentPage, replacedPage);
+            pageFaults++;
+
+            printPageTable(pageTable, FRAME_SIZE);
+        }
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
