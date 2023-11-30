@@ -1,0 +1,127 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MEMORY_SIZE 1000
+
+typedef struct Node {
+    int start;
+    int size;
+    struct Node* next;
+} Node;
+
+Node* memory = NULL;
+
+void initializeMemory() {
+    memory = (Node*)malloc(sizeof(Node));
+    memory->start = 0;
+    memory->size = MEMORY_SIZE;
+    memory->next = NULL;
+}
+
+void displayMemory() {
+    Node* current = memory;
+    printf("Memory Status: ");
+    while (current != NULL) {
+        printf("[%d:%d] -> ", current->start, current->size);
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+
+void firstFit(int processSize) {
+    Node* current = memory;
+    while (current != NULL) {
+        if (current->size >= processSize) {
+          
+            Node* newNode = (Node*)malloc(sizeof(Node));
+            newNode->start = current->start;
+            newNode->size = processSize;
+            newNode->next = current->next;
+            current->start += processSize;
+            current->size -= processSize;
+            current->next = newNode;
+            printf("Allocated %d units using First Fit\n", processSize);
+            return;
+        }
+        current = current->next;
+    }
+    printf("Insufficient memory for allocating %d units using First Fit\n", processSize);
+}
+
+void bestFit(int processSize) {
+    Node* current = memory;
+    Node* bestFitBlock = NULL;
+    int bestFitBlockSize = MEMORY_SIZE + 1;
+
+    while (current != NULL) {
+        if (current->size >= processSize && current->size < bestFitBlockSize) {
+            bestFitBlock = current;
+            bestFitBlockSize = current->size;
+        }
+        current = current->next;
+    }
+
+    if (bestFitBlock != NULL) {
+      
+        Node* newNode = (Node*)malloc(sizeof(Node));
+        newNode->start = bestFitBlock->start;
+        newNode->size = processSize;
+        newNode->next = bestFitBlock->next;
+        bestFitBlock->start += processSize;
+        bestFitBlock->size -= processSize;
+        bestFitBlock->next = newNode;
+        printf("Allocated %d units using Best Fit\n", processSize);
+    } else {
+        printf("Insufficient memory for allocating %d units using Best Fit\n", processSize);
+    }
+}
+
+void worstFit(int processSize) {
+    Node* current = memory;
+    Node* worstFitBlock = NULL;
+    int worstFitBlockSize = -1;
+
+    while (current != NULL) {
+        if (current->size >= processSize && current->size > worstFitBlockSize) {
+            worstFitBlock = current;
+            worstFitBlockSize = current->size;
+        }
+        current = current->next;
+    }
+
+    if (worstFitBlock != NULL) {
+  
+        Node* newNode = (Node*)malloc(sizeof(Node));
+        newNode->start = worstFitBlock->start;
+        newNode->size = processSize;
+        newNode->next = worstFitBlock->next;
+        worstFitBlock->start += processSize;
+        worstFitBlock->size -= processSize;
+        worstFitBlock->next = newNode;
+        printf("Allocated %d units using Worst Fit\n", processSize);
+    } else {
+        printf("Insufficient memory for allocating %d units using Worst Fit\n", processSize);
+    }
+}
+
+int main() {
+    initializeMemory();
+
+    displayMemory();
+
+    firstFit(200);
+    displayMemory();
+
+    bestFit(300);
+    displayMemory();
+
+    worstFit(150);
+    displayMemory();
+
+    worstFit(500);
+    displayMemory();
+
+    free(memory);
+
+    return 0;
+}
