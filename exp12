@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define NUM_PHILOSOPHERS 5
+#define THINKING 0
+#define HUNGRY 1
+#define EATING 2
+#define LEFT (philosopher_num + NUM_PHILOSOPHERS - 1) % NUM_PHILOSOPHERS
+#define RIGHT (philosopher_num + 1) % NUM_PHILOSOPHERS
+
+pthread_mutex_t mutex;
+pthread_cond_t condition[NUM_PHILOSOPHERS];
+int state[NUM_PHILOSOPHERS];
+
+void think(int philosopher_num) {
+    printf("Philosopher %d is thinking\n", philosopher_num);
+    sleep(rand() % 3 + 1); // Simulate thinking
+}
+
+void eat(int philosopher_num) {
+    printf("Philosopher %d is eating\n", philosopher_num);
+    sleep(rand() % 3 + 1); // Simulate eating
+}
+
+void take_forks(int philosopher_num) {
+    pthread_mutex_lock(&mutex);
+    state[philosopher_num] = HUNGRY;
+    printf("Philosopher %d is hungry\n", philosopher_num);
+    test(philosopher_num);
+    while (state[philosopher_num] != EATING) {
+        pthread_cond_wait(&condition[philosopher_num], &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+void put_forks(int philosopher_num) {
+    pthread_mutex_lock(&mutex);
+    state[philosopher_num] = THINKING;
+    printf("Philosopher %d is putting forks down and thinking\n", philosopher_num);
+    test(LEFT);
+    test(RIGHT);
+    pthread_mutex_unlock(&mutex);
+}
+
+void test(int philosopher_num) {
+    if (state[philosopher_num] == HUNGRY &&
+        state[LEFT] != EATING &&
+        state[RIGHT] != EATING) {
+        state[philosopher_num] = EATING;
+        pthread_cond_signal(&condition[philosopher_num]);
+    }
+}
+
+void *philosopher(void *arg) {
+    int philosopher_num = *(int *)arg;
+
+    while (1) {
+        think(philosopher_num);
+        take_forks(philosopher_num);
+        eat(philosopher_num);
+        put_forks(philosopher_num);
+    }
+}
+
+int main() {
+    pthread_t philosophers[NUM_PHILOSOPHERS];
+    int philosopher_nums[NUM_PHILOSOPHERS];
+
+    pthread_mutex_init(&mutex, NULL);
+
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        pthread_cond_init(&condition[i], NULL);
+        philosopher_nums[i] = i;
+        pthread_create(&philosophers[i], NULL, philosopher, (void *)&philosopher_nums[i]);
+    }
+
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+        pthread_join(philosophers[i], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
